@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.IO;
-using System.Text;
-
 
 public class MyFramework : MonoBehaviour
 {
@@ -48,6 +45,8 @@ public class MyFramework : MonoBehaviour
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    public TextAsset _jsonAsset;
+    public Texture _buildingTexture;
     public Material _baseMaterial;
 
     APIResponseInfo _apiResponse = null;
@@ -62,7 +61,7 @@ public class MyFramework : MonoBehaviour
 
     void Start()
     {
-        LoadJsonDataFromFile();
+        LoadJsonData();
         InvokeAPIResponse();
     }
 
@@ -87,23 +86,9 @@ public class MyFramework : MonoBehaviour
     //{
     //}
 
-    void LoadJsonDataFromFile()
+    void LoadJsonData()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append(Application.dataPath);
-        sb.Append("/Samples/json/dong.json");
-
-        string jsonData = "";
-        _apiResponse = null;
-
-        using ( StreamReader reader = new StreamReader(sb.ToString(), Encoding.Default) )
-        {
-            jsonData = reader.ReadToEnd();
-        }
-
-        _apiResponse = JsonUtility.FromJson<APIResponseInfo>(jsonData);
-
-        sb = null;
+        _apiResponse = JsonUtility.FromJson<APIResponseInfo>(_jsonAsset.text);
     }
 
     void InvokeAPIResponse()
@@ -153,8 +138,10 @@ public class MyFramework : MonoBehaviour
                     MeshRenderer meshRenderer = roomTypeObject.AddComponent<MeshRenderer>();
                     Material material = new Material(_baseMaterial);
 
+                    material.mainTexture = _buildingTexture;
+
                     Vector2 textureScale = CalculateTextureScale(vertexArray);
-                    material.SetTextureScale("_MainTex", textureScale);
+                    material.SetTextureScale("_BaseMap", textureScale);
 
                     meshRenderer.material = material;
                 }
