@@ -52,30 +52,35 @@ public class MyFramework : MonoBehaviour
 
     APIResponseInfo _apiResponse = null;
     int _floatSize = sizeof(float);
-    List<GameObject> _polygonObjectList = new List<GameObject>();
+    List<GameObject> _dongObjectList = new List<GameObject>();
 
 
     ///////////////////////////////////////////////////////////////////////////////////////
-    void Awake()
-    {
-        LoadJsonDataFromFile();
-    }
+    //void Awake()
+    //{
+    //}
 
     void Start()
     {
-        if (_apiResponse != null && _apiResponse.success)
-        {
-            ConstructPolygonMesh();
-        }
+        LoadJsonDataFromFile();
+        InvokeAPIResponse();
     }
 
     void OnDestroy()
     {
-        for (int i=0; i<_polygonObjectList.Count; ++i)
-        {
-            Destroy(_polygonObjectList[i]);
-        }
-        _polygonObjectList = null;
+        ReleaseDongObject();
+
+        _dongObjectList = null;
+    }
+
+    void OnEnable()
+    {
+        InvokeAPIResponse();
+    }
+
+    void OnDisable()
+    {
+        ReleaseDongObject();
     }
 
     //void Update()
@@ -101,24 +106,29 @@ public class MyFramework : MonoBehaviour
         sb = null;
     }
 
-    void ConstructPolygonMesh()
+    void InvokeAPIResponse()
     {
-        StringBuilder sb = new StringBuilder();
-        int polygonCount = 0;
+        if (_apiResponse != null && _apiResponse.success)
+        {
+            ConstructDongObject();
+        }
+    }
 
-        for(int i=0; i<_apiResponse.data.Length; ++i)
+    void ConstructDongObject()
+    {
+        for (int i=0; i<_apiResponse.data.Length; ++i)
         {
             for(int j=0; j<_apiResponse.data[i].roomtypes.Length; ++j)
             {
-                for(int h=0; h<_apiResponse.data[i].roomtypes[j].coordinatesBase64s.Length; ++h)
+                GameObject dongObject = new GameObject(_apiResponse.data[i].meta.동);
+                _dongObjectList.Add(dongObject);
+
+                for (int h=0; h<_apiResponse.data[i].roomtypes[j].coordinatesBase64s.Length; ++h)
                 {
-                    sb.Append("Polygon ");
-                    sb.Append(++polygonCount);
+                    GameObject roomTypeObject = new GameObject("RoomTypes " + h.ToString());
+                    roomTypeObject.transform.SetParent(dongObject.transform);
 
-                    GameObject polygonObject = new GameObject(sb.ToString());
-                    //Debug.Log("[[[   polygonObject.name : " + polygonObject.name + "   ]]]");
-
-                    MeshFilter meshFilter = polygonObject.AddComponent<MeshFilter>();
+                    MeshFilter meshFilter = roomTypeObject.AddComponent<MeshFilter>();
                     Mesh mesh = new Mesh();
 
                     // vertex
@@ -130,6 +140,8 @@ public class MyFramework : MonoBehaviour
                     mesh.triangles = triangleArray;
 
                     mesh.RecalculateNormals();
+                    mesh.RecalculateBounds();
+                    //mesh.Optimize();
 
                     // uv
                     Vector2[] uvArray = MakeUV(vertexArray, mesh.normals);
@@ -138,27 +150,16 @@ public class MyFramework : MonoBehaviour
                     meshFilter.mesh = mesh;
 
                     // material
-                    MeshRenderer meshRenderer = polygonObject.AddComponent<MeshRenderer>();
+                    MeshRenderer meshRenderer = roomTypeObject.AddComponent<MeshRenderer>();
                     Material material = new Material(_baseMaterial);
 
                     Vector2 textureScale = CalculateTextureScale(vertexArray);
                     material.SetTextureScale("_MainTex", textureScale);
 
                     meshRenderer.material = material;
-
-                    //
-                    _polygonObjectList.Add(polygonObject);
-
-                    sb.Clear();
-
-                    //break;
                 }
-                //break;
             }
-            //break;
         }
-
-        sb = null;
     }
 
     Vector3[] ConvertVector3Array(string coordinatesBase64s)
@@ -315,7 +316,6 @@ public class MyFramework : MonoBehaviour
             {
                 minHeight = vertexArray[i].y;
             }
-
             if ( vertexArray[i].y > maxHeight )
             {
                 maxHeight = vertexArray[i].y;
@@ -323,6 +323,15 @@ public class MyFramework : MonoBehaviour
         }
 
         return (maxHeight - minHeight);
+    }
+
+    void ReleaseDongObject()
+    {
+        for(int i=0; i<_dongObjectList.Count; ++i)
+        {
+            Destroy(_dongObjectList[i]);
+        }
+        _dongObjectList.Clear();
     }
 
 
