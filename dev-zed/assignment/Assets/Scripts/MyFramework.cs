@@ -46,7 +46,6 @@ public class MyFramework : MonoBehaviour
     ///////////////////////////////////////////////////////////////////////////////////////
 
     public TextAsset _jsonAsset;
-    public Texture _buildingTexture;
     public Material _baseMaterial;
 
     APIResponseInfo _apiResponse = null;
@@ -138,8 +137,6 @@ public class MyFramework : MonoBehaviour
                     MeshRenderer meshRenderer = roomTypeObject.AddComponent<MeshRenderer>();
                     Material material = new Material(_baseMaterial);
 
-                    material.mainTexture = _buildingTexture;
-
                     Vector2 textureScale = CalculateTextureScale(vertexArray);
                     material.SetTextureScale("_BaseMap", textureScale);
 
@@ -226,8 +223,8 @@ public class MyFramework : MonoBehaviour
             //          normalArray[vertexIndex].z.ToString() + " >>>>>");
 
             // top or bottom
-            if( normalArray[vertexIndex] == Vector3.up ||
-                normalArray[vertexIndex] == Vector3.down )
+            if ( normalArray[vertexIndex] == Vector3.up ||
+                 normalArray[vertexIndex] == Vector3.down )
             {
                 //Debug.Log("texture part is 3");
 
